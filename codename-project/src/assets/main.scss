@@ -1,0 +1,26 @@
+$vert1: #22f153;
+$vert2: #00e7c7;
+
+$gris1: #a9a9a9;
+$gris2: #c7c7c7;
+
+$noir1: #171717;
+$noir2: #7c0024;
+
+* {
+  padding: 0;
+  margin: 0;
+  font-family: 'Tilt Neon', cursive;
+  box-sizing: border-box;
+}
+
+html, body{
+  height: 100vh;
+  width: 100%;
+}
+
+h1, h2, h3{font-family: 'Karla', sans-serif;}
+h1, h2{font-weight: 700;}
+h1{font-size: 3em;}
+h2{font-size: 2em;}
+h3{font-size: 1.5em;}
