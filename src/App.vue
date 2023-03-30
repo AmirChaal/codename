@@ -14,30 +14,31 @@ const route = useRoute()
 
 // ---------------------------------------------------------------------------
 
-// Fetch API data every 1.5s
+// Pour
 let apiData = ref({})
 let gameid = ref()
+let userid = ref()
 onMounted(async () => {
-  watch(() => route.params.id, async (id) => {
-    console.log(id)
+
+  watch(() => route.params.idpartie, async (id) => {
     gameid.value = id
+
+    // ----- Fonction FetchApi -----
     async function fetchApi() {
       let response = await axios.get(`http://localhost:8088/sae401/index.php/api/parties/${id}`)
       console.log(response.data)
       return response.data
     }
+
+    // ----- Execute FetchApi at start + every 1.5s -----
     apiData.value = await fetchApi()
     setInterval(async () => {
       apiData.value = await fetchApi()
     }, 1500)
   })
 })
-console.log(gameid)
 
-let userid = ref()
-if (route.params.user) {
-  userid.value = route.params.user
-}
+
 console.log(userid)
 
 </script>

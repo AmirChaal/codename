@@ -20,7 +20,7 @@ export default {
   },
   methods: {
     test() {
-      console.log(this.apiData)
+      console.log(this.gameid)
     }
   }
 }
