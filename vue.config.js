@@ -1,4 +1,5 @@
 module.exports = {
+    publicPath: '/jeu/',
     css: {
         loaderOptions: {
             sass: {

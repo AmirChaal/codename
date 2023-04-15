@@ -2,7 +2,7 @@
   <section class="header">
     <h1>CODENAMES DUO</h1>
     <nav>
-      <h3>Reinitialiser</h3>
+      <h3 @click="Reinitialiser">Reinitialiser</h3>
       <h3>Quitter</h3>
       <h3>Règles</h3>
     </nav>
@@ -10,8 +10,42 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
-  name: "Header.vue"
+  name: "Header.vue",
+  props: {
+    apiData: {
+      type: Object,
+      required: true
+    },
+    idpartie: {
+      required: true
+    },
+    iduser: {
+      required: true
+    },
+  },
+  methods: {
+    Reinitialiser(){
+      this.apiData.cartes.forEach((carte) => {
+        carte.etat = 'libre';
+      });
+      this.apiData.quiInput = 1
+      this.apiData.etatPartie = 'En attente'
+      delete this.apiData.motIndice
+      delete this.apiData.nbMotsADecouvrir
+      delete this.apiData.historique
+
+      let newApiData = this.apiData
+      newApiData.nbMotsADecouvrir = null
+      newApiData.motIndice = null
+      newApiData.historique = null
+      axios.patch(`http://localhost:8088/sae401/index.php/api/parties/${this.idpartie}`, newApiData, {headers: {'Content-Type': 'application/merge-patch+json'}})
+          .then(response => {console.log(response.data);})
+          .catch(error => {console.error(error)});
+    }
+  }
 }
 </script>
 
@@ -24,6 +58,7 @@ export default {
   justify-content: space-between;
   align-items: center;
 
+  z-index: 4;
   background: rgb(0,0,0,0.1);
 
   h1{

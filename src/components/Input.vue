@@ -1,38 +1,115 @@
 <template>
-  <div class="bas" v-if="apiData.motIndice !== undefined">
+  <!-- EN ATTENTE DU JOUEUR 2 --------------------------------------------- -->
+  <div v-if="apiData.etatPartie === 'En attente'" class="bas">
     <div class="indice">
-      <h3>Indice en cours</h3>
-      <h2>{{ apiData.motIndice }} - {{ apiData.nbMotADecouvrir }} </h2>
-    </div>
-    <div class="input">
-      <div class="fini">Fini de deviner</div>
+      <h3>Attendons que le joueur 2</h3>
+      <h2>Rejoigne la partie</h2>
     </div>
   </div>
 
+  <!-- PARTIE GAGNÉE --------------------------------------------- -->
+  <div v-else-if="apiData.etatPartie === 'Gagnée'" class="bas">
+    <div class="indice">
+      <h3>Bravo !!!!</h3>
+      <h2>:D :D :D :D :D :D :D :D :D :D :D :D :D</h2>
+    </div>
+  </div>
 
+  <!-- PARTIE PERDUE --------------------------------------------- -->
+  <div v-else-if="apiData.etatPartie === 'Perdue'" class="bas">
+    <div class="indice">
+      <h3>Vous pouvez toujours</h3>
+      <h2>Réinitialiser !</h2>
+    </div>
+  </div>
 
-  <div class="bas" v-else>
+  <!-- A VOUS DE DONNER UN MOT --------------------------------------------- -->
+  <div v-else-if="!motIndiceDefini && apiData.quiInput == iduser && (apiData.etatPartie === 'En cours' || apiData.etatPartie === 'Gagnée')" class="bas">
     <div class="indice">
       <h3>C'est à vous de</h3>
       <h2>Donner un indice !</h2>
     </div>
     <div class="input">
-      <input class="mot" type="text">
-      <input class="nombre" type="text">
-      <div class="envoyer">Envoyer</div>
+      <input v-model="mot" class="mot" type="text">
+      <input v-model="nb" class="nombre" type="number">
+      <div @click="SubmitMotIndice" class="envoyer">Envoyer</div>
     </div>
   </div>
 
+  <!-- L'AUTRE JOUEUR DONNE UN MOT --------------------------------------------- -->
+  <div v-else-if="!motIndiceDefini && apiData.quiInput != iduser && (apiData.etatPartie === 'En cours' || apiData.etatPartie === 'Gagnée')" class="bas">
+    <div class="indice">
+      <h3>Votre co-équipier</h3>
+      <h2>Donne un indice...</h2>
+    </div>
+  </div>
+
+  <!-- L'AUTRE JOUEUR DEVINE --------------------------------------------- -->
+  <div v-else-if="motIndiceDefini && apiData.quiInput == iduser && (apiData.etatPartie === 'En cours' || apiData.etatPartie === 'Gagnée')" class="bas">
+    <div class="indice">
+      <h3>Indice en cours</h3>
+      <h2>{{ apiData.motIndice }} - {{ apiData.nbMotsADecouvrir }}</h2>
+    </div>
+    <div class="input">
+      <h2>Votre co-équipier devine vos cartes vertes...</h2>
+    </div>
+  </div>
+
+  <!-- A VOUS DE DEVINER -->
+  <div v-else-if="motIndiceDefini && apiData.quiInput != iduser && (apiData.etatPartie === 'En cours' || apiData.etatPartie === 'Gagnée')" class="bas">
+    <div class="indice">
+      <h3>Indice en cours</h3>
+      <h2>{{ apiData.motIndice }} - {{ apiData.nbMotsADecouvrir }} </h2>
+    </div>
+    <div class="input">
+      <div @click="FinDeTour()" class="fini">Fini de deviner</div>
+    </div>
+
+  </div>
 </template>
 
 <script>
+import axios from 'axios'
+import {ref} from "vue";
 export default {
   name: "Input.vue",
+  data() {
+    return {
+      mot: '',
+      nb: ''
+    }
+  },
   props: {
-    apiData: Object
+    apiData: Object,
+    iduser: {
+      required: true
+    },
+    idpartie: {
+      required: true
+    },
+    FinDeTour: {
+      required: true,
+      type: Function
+    }
   },
   methods: {
-    AnimationMotSubmit() {
+    async SubmitMotIndice() {
+      this.apiData.motIndice = this.mot.toUpperCase();
+      this.apiData.nbMotsADecouvrir = parseInt(this.nb);
+      if (this.apiData.historique) {
+        this.apiData.historique.push({"joueur":this.iduser,"mot":this.mot.toUpperCase(),"nb":this.nb});
+      } else {
+        this.apiData.historique = [{"joueur":this.iduser,"mot":this.mot.toUpperCase(),"nb":this.nb}]
+        console.log(this.apiData.historique)
+      }
+      axios.patch(`http://localhost:8088/sae401/index.php/api/parties/${this.idpartie}`, this.apiData, {headers: {'Content-Type': 'application/merge-patch+json'}})
+          .then(response => {console.log(response.data);})
+          .catch(error => {console.error(error)})
+    },
+  },
+  computed: {
+    motIndiceDefini() {
+      return !(this.apiData.motIndice === undefined || this.apiData.motIndice === '' || this.apiData.motIndice === null);
     }
   }
 }
@@ -90,7 +167,8 @@ $noir2: #7c0024;
   }
 
   input:nth-child(2) {
-    aspect-ratio: 1;
+    aspect-ratio: 1.2;
+    padding: 0.5em 0.5em;
   }
 
   .envoyer, .fini {
